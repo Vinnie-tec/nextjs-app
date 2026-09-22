@@ -21,6 +21,9 @@ export default function Navigation() {
             <Link href="/courses">Courses</Link>
           </li>
           <li>
+            <Link href="/messages">Messages</Link>
+          </li>
+          <li>
             <Link href="/checkout">Checkout</Link>
           </li>
           <li>
