@@ -7,12 +7,12 @@ export const ThemeContext = createContext();
 
 export default function ThemeProvider({ children }) {
   // theme state: defaults to 'light'
-  const [theme, setTheme] = useState("light");
+  const [theme, setTheme] = useState("dark");
 
   // on mount, ensure the 'light' theme is applied to document
 
   useEffect(() => {
-    document.documentElement.classList.remove("dark"); // remove mode if present
+    document.documentElement.classList.add("dark"); // remove mode if present
   }, []);
 
   //   function to toggle between light and dark theme manually
