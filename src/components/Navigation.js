@@ -1,10 +1,16 @@
+"use client";
+
 import Link from "next/link";
+import { use } from "react";
+import { ThemeContext } from "@/context/ThemeContext";
 
 export default function Navigation() {
+  const [theme, toggleTheme] = use(ThemeContext);
+
   return (
-    <header className="bg-gray-100 p-4 shadow">
-      <nav>
-        <ul className="flex gap-4">
+    <header className="bg-white dark:bg-slate-800 p-4 shadow ">
+      <nav className="flex justify-between items-center">
+        <ul className="flex gap-4 text-gray-900 dark:text-gray-100">
           <li>
             <Link href="/">Home</Link>
           </li>
@@ -24,6 +30,14 @@ export default function Navigation() {
             <Link href="/contact">Contact Us</Link>
           </li>
         </ul>
+
+        {/* Theme toggle */}
+        <button
+          className="px-3 py-1 border border-gray-300 dark:border-slate-600 rounded-md text-sm bg-gray-100 dark:bg-slate-700 text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-slate-600 transition cursor-pointer"
+          onClick={toggleTheme}
+        >
+          {theme === "light" ? "🌙" : "🌞"}
+        </button>
       </nav>
     </header>
   );
