@@ -5,7 +5,7 @@ import { use } from "react";
 import { ThemeContext } from "@/context/ThemeContext";
 
 export default function Navigation() {
-  const [theme, toggleTheme] = use(ThemeContext);
+  const {theme, toggleTheme} = use(ThemeContext);
 
   return (
     <header className="bg-white dark:bg-slate-800 p-4 shadow ">

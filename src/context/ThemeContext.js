@@ -2,7 +2,7 @@
 
 import { createContext, useState, useEffect } from "react";
 
-// create a context to share theme state and toggle function across theapp
+// create a context to share theme state and toggle function across the app
 export const ThemeContext = createContext();
 
 export default function ThemeProvider({ children }) {
