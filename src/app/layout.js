@@ -4,6 +4,8 @@ import Footer from "@/components/Footer";
 
 import ThemeProvider from "@/context/ThemeContext";
 
+import ToastClient from "@/components/ToastClient";
+
 export const metadata = {
   title: "Course App",
   description: "Course App by Vincent",
@@ -20,6 +22,7 @@ export default function RootLayout({ children }) {
 
           <Footer />
         </ThemeProvider>
+        <ToastClient />
       </body>
     </html>
   );
