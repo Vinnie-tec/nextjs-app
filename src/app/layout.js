@@ -3,8 +3,8 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 
 export const metadata = {
-  title: "Next App",
-  description: "Agboola Vincent",
+  title: "Course App",
+  description: "Course App by Vincent",
 };
 
 export default function RootLayout({ children }) {
