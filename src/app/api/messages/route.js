@@ -1,13 +1,12 @@
-import { promises as fs } from "fs";
-import path from "path";
+import db from "@/lib/db";
+import { broadCastMessage } from "./stream/route";
 
-const filePath = path.join(process.cwd(), "src/data/message.json");
 
 export async function GET() {
   try {
-    const data = await fs.readFile(filePath, "utf-8");
-
-    const messages = JSON.parse(data);
+    const messages = db
+      .prepare("SELECT id, text, created_at, FROM messages ORDER BY id ASC")
+      .all();
 
     return Response.json(messages);
   } catch (error) {
@@ -19,20 +18,17 @@ export async function GET() {
 
 export async function POST(request) {
   try {
-    const newMessages = await request.json();
+    const { text } = await request.json();
 
-    const data = await fs.readFile(filePath, "utf8");
+    const statement = db.prepare("INSERT INTO messages (text) VALUES (?)");
+    const result = statement.run(text);
 
-    const messages = JSON.parse(data);
+    const messageWithId = db
+      .prepare("SELECT * FROM messages WHERE id = ?")
+      .get(result.lastInsertRowid);
 
-    const messageWithId = {
-      id: messages.length ? messages[messages.length - 1].id + 1 : 1,
-      text: newMessages.text,
-    };
 
-    messages.push(messageWithId);
-
-    await fs.writeFile(filePath, JSON.stringify(messages, null, 2));
+    broadCastMessage(messageWithId)
 
     return Response.json({
       success: true,
