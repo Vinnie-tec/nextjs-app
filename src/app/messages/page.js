@@ -77,7 +77,9 @@ export default function MessagesPage() {
             key={msg.id}
             className="p-3 border rounded-md bg-gray-100 dark:bg-gray-800"
           >
+            <p className="font-semibold">{msg.user_name || "Anonymous"}</p>
             {msg.text}
+            <span className="text-xs text-gray-500">{msg.created_at}</span>
           </li>
         ))}
       </ul>

@@ -6,7 +6,7 @@ export async function GET() {
     const messages = db
       .prepare(
         `
-      SELECT m.id, m.text, m.created_at, u.text AS user_name
+      SELECT m.id, m.text, m.created_at, u.name AS user_name
       FROM messages m
       LEFT JOIN users u ON m.user_id = u.id
       ORDER BY m.id ASC
@@ -34,7 +34,7 @@ export async function POST(request) {
 
     const messageWithId = db
       .prepare(`
-        SELECT m.id, m.text, m.created_at, u.text AS user_name
+        SELECT m.id, m.text, m.created_at, u.name AS user_name
       FROM messages m
       LEFT JOIN users u ON m.user_id = u.id
       WHERE m.id = ?
