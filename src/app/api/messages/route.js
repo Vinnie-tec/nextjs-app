@@ -41,7 +41,7 @@ export async function POST(request) {
         `)
       .get(result.lastInsertRowid);
 
-    broadcastmessage(messageWithId);
+    broadCastMessage(messageWithId);
 
     return Response.json({
       success: true,
