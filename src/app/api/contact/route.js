@@ -2,7 +2,8 @@ import { sendEmail } from "@/lib/sendEmail";
 
 export async function POST(request) {
   try {
-    const { name, email, message } = await request.json();
+    const { name, email, message } =
+    = await request.json();
 
     if (!name || !email || !message) {
       return new Response(
