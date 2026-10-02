@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { SendContactMessage } from "./action";
 
 const contactSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -26,19 +27,29 @@ export default function Contact() {
 
   const onSubmit = async (data) => {
     try {
-      const response = await fetch("/api/contact", {
-        method: "POST",
-        headers: JSON.stringify(data),
-      });
+      // const response = await fetch("/api/contact", {
+      //   method: "POST",
+      //   headers: JSON.stringify(data),
+      // });
 
-      const result = await response.json();
+      // const result = await response.json();
+
+
+      // SERVER ACTIONS
+
+      const formData = new FormData();
+      formData.append("name", data.name);
+      formData.append("email", data.email);
+      formData.append("message", data.message); 
+
+      const result = await SendContactMessage(formData)
 
       if (result.success) {
         toast.success("Message sent successfully");
         reset();
       } else {
         toast.error(
-          result.message || "Failed to send messsage. Please try again",
+          result.message || "Failed to send message. Please try again",
         );
       }
     } catch (error) {
