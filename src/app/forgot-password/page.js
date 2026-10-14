@@ -1,7 +1,7 @@
 import ForgotPasswordPage from "./ForgotPasswordPage";
 
 export const metadata = {
-  title: "Forgot Password | Agora",
+  title: "Forgot Password | Vinnie",
   description: "Reset your account password securely.",
 };
 
