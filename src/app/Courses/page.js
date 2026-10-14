@@ -1,4 +1,5 @@
 import CourseList from "./CourseList";
+import { courses as fallbackCourses } from "@/data/courses";
 
 export const metadata = {
   title: "Vinnie Courses",
@@ -6,16 +7,22 @@ export const metadata = {
 };
 
 async function getCourses() {
-  const response = await fetch("https://codepion.com/api/courses", {
-    // cache: 'force-cache', //SSG (STATIC SITE GENERATION)
-    next: { revalidate: 60 }, // Regenerates every 60seconds => ISR(Incremental Site Regeneration)
-    // cache: 'no-store', //Server render on every request... SSR (SERVER-SIDE RENDERING)- default in nextjs 16
-  });
+  try {
+    const response = await fetch("https://codepion.com/api/courses", {
+      // cache: 'force-cache', //SSG (STATIC SITE GENERATION)
+      next: { revalidate: 60 }, // Regenerates every 60seconds => ISR(Incremental Site Regeneration)
+      // cache: 'no-store', //Server render on every request... SSR (SERVER-SIDE RENDERING)- default in nextjs 16
+    });
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch courses");
+    if (!response.ok) {
+      throw new Error("Failed to fetch courses");
+    }
+
+    return response.json();
+  } catch (error) {
+    console.warn("Falling back to local course data:", error);
+    return fallbackCourses;
   }
-  return response.json();
 }
 
 export default async function CoursesPage() {

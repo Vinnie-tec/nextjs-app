@@ -2,9 +2,16 @@
 'use client';
 
 import { useEffect, useState } from "react";
+import { useSession, signIn } from "next-auth/react";
 import toast from "react-hot-toast";
 
 export default function MessagesPage() {
+  // -------------------------------------------------------------
+  // Get the current authentication status
+  // (e.g. "authenticated", "unauthenticated", or "loading") from NextAuth
+  // -------------------------------------------------------------
+  const { status } = useSession();
+
   // -------------------------------------------------------------
   // Local state variables
   // -------------------------------------------------------------
@@ -31,7 +38,11 @@ export default function MessagesPage() {
   // The empty dependency array [] ensures this runs only once
   // -------------------------------------------------------------
   useEffect(() => {
-    fetchMessages();
+    const timer = setTimeout(() => {
+      void fetchMessages();
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, []);
 
   // -------------------------------------------------------------
@@ -95,6 +106,28 @@ export default function MessagesPage() {
   }
 
   // -------------------------------------------------------------
+  // 🔐 Handle auth states
+  // -------------------------------------------------------------
+  if (status === "loading") {
+    return <p className="p-6 text-center">Loading session...</p>;
+  }
+
+  if (status === "unauthenticated") {
+    return (
+      <div className="p-6 text-center">
+        <p className="mb-4">You must be logged in to view messages.</p>
+        {/* Trigger the NextAuth sign-in flow when the user clicks the Login button */}
+        <button
+          onClick={() => signIn()}
+          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer"
+        >
+          Login
+        </button>
+      </div>
+    );
+  }
+
+  // -------------------------------------------------------------
   // UI Rendering
   // -------------------------------------------------------------
   return (
@@ -127,7 +160,7 @@ export default function MessagesPage() {
           required
           disabled={loading} // Disable input while sending
           className={
-            "border px-3 py-2 flex-grow rounded-md " +
+            "border px-3 py-2 grow rounded-md " +
             "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
           }
         />

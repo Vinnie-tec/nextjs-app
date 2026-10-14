@@ -1,6 +1,6 @@
 "use server";
 
-import db from "@/lib/db.Setup";
+import db from "@/lib/dbSetup";
 
 export async function getDataBaseContents() {
   try {
