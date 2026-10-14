@@ -1,6 +1,6 @@
 export const metadata = {
-  title: "About Us | Agora",
-  description: `Learn more about Agora, our mission, 
+  title: "About Us | Vinnie",
+  description: `Learn more about Vinnie, our mission, 
   and how we connect the community through posts and messages.`,
 };
 

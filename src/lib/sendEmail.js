@@ -13,7 +13,7 @@ export async function sendEmail({ to, subject, html }) {
   try {
     // Attempt to send the email via Resend
     const { data, error } = await resend.emails.send({
-      from: "Agora <onboarding@resend.dev>", // Replace with your verified sender domain
+      from: "Vinnie <onboarding@resend.dev>", // Replace with your verified sender domain
       to,                                       // Recipient address
       subject,                                  // Email subject line
       html,                                     // Email body (HTML)

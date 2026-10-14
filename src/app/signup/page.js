@@ -1,8 +1,8 @@
 import SignupPage from "./SignupPage";
 
 export const metadata = {
-  title: "Sign Up | Agora",
-  description: `Create a new Agora account to join the community, 
+  title: "Sign Up | Vinnie",
+  description: `Create a new Vinnie account to join the community, 
   share posts, and connect with everyone instantly.`,
 };
 
