@@ -1,23 +1,22 @@
 export default async function Cart() {
-  // simulate server data data fetching
-
+  // Simulate server data fetching
   const items = [
-    { id: 1, name: "React Mastery Course", price: 33.9262 },
-    { id: 2, name: "Angular Mastery Course", price: 62.0265 },
+    { id: 1, name: "React Mastery Course", price: 49 },
+    { id: 2, name: "Next.js Essentials", price: 59 },
   ];
 
   const total = items.reduce((sum, item) => sum + item.price, 0);
 
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-4">🛒Your Cart</h2>
+      <h2 className="text-xl font-semibold mb-4">🛍️ Your Cart</h2>
       <ul className="space-y-2">
-        {items.map((item) => {
+        {items.map((item) => (
           <li key={item.id} className="flex justify-between">
             <span>{item.name}</span>
             <span>${item.price}</span>
-          </li>;
-        })}
+          </li>
+        ))}
       </ul>
       <hr className="my-4" />
       <p className="font-bold text-lg text-right">Total: ${total}</p>
