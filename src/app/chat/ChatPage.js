@@ -1,7 +1,7 @@
 // Mark this as a Client Component in Next.js  to use hooks: useState, useEffect
 'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSession, signIn } from "next-auth/react";
 import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
@@ -11,6 +11,8 @@ import { inputClass } from "@/lib/styles";
 import SubmitButton from "@/components/ui/SubmitButton";
 import FormError from "@/components/FormError";
 import CourseCard from "@/components/CourseCard";
+import MessagesList from "./MessagesList";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { getCourses } from "./actions";
 
 // ✅ Define Zod schema
@@ -149,6 +151,11 @@ export default function MessagesPage() {
         {/* 💬 Right: Messages + Form */}
         <div className="flex-1">
           {/* Message List */}
+          <ErrorBoundary>
+            <Suspense fallback={<p>Loading messages...</p>}>
+              <MessagesList courseId={selectedCourse} />
+            </Suspense>
+          </ErrorBoundary>
 
           {/* Message Input Form */}
           <form onSubmit={handleSubmit} className="flex flex-col gap-2 mt-4">
