@@ -4,6 +4,7 @@ import fs from "fs";
 import bcrypt from "bcrypt";
 import { courses } from "@/data/courses";
 import { users } from "@/data/users";
+import { shuffledMessages as messages } from "@/data/messages";
 
 // Define database path
 const dbPath = path.join(process.cwd(), "src/data/app.db");
@@ -20,7 +21,7 @@ const loadSQL = (relativePath) =>
 const dropTablesSQL = loadSQL("schema/dropTables.sql");
 const createTablesSQL = loadSQL("schema/createTables.sql");
 
-//db.exec(dropTablesSQL);
+// db.exec(dropTablesSQL);
 db.exec(createTablesSQL);
 
 // -------------------------------------------------------------
@@ -74,6 +75,24 @@ if (courseCount === 0) {
   insertMany(courses);
 
   console.log("✅ Sample courses inserted successfully");
+}
+
+// -------------------------------------------------------------
+// 💬 Seed demo messages
+// -------------------------------------------------------------
+const messageCount = db.prepare("SELECT COUNT(*) AS count FROM messages").get().count;
+if (messageCount === 0) {
+  const insertMessageSQL = loadSQL("seed/insertMessages.sql");
+  const insertMessage = db.prepare(insertMessageSQL);
+
+  const insertManyMessages = db.transaction((messages) => {
+    for (const m of messages) {
+      insertMessage.run(m.user_id, m.course_id, m.text);
+    }
+  });
+
+  insertManyMessages(messages);
+  console.log(`✅ Inserted ${messages.length} sample messages successfully`);
 }
 
 export default db;
