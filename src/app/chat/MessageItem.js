@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
+import clsx from "clsx";
 
 export default function MessageItem({
   msg,
   session,
   handleDelete,
+  handleEdit,
 }) {
   // Local state for editing mode and edit text
   const [isEditing, setIsEditing] = useState(false);
@@ -19,8 +21,38 @@ export default function MessageItem({
 
       {/* Message content or editing input */}
       {isEditing ? (
-        <div>
-        </div>
+        <form
+          className="flex gap-2 items-center mt-1"
+          onSubmit={(e) => {
+            e.preventDefault(); // Prevent full page reload
+            handleEdit(msg.id, editText);
+            setIsEditing(false);
+          }}
+        >
+          <input
+            type="text"
+            value={editText}
+            onChange={(e) => setEditText(e.target.value)}
+            className={clsx(
+              "border rounded-md px-2 py-1 grow",
+              "bg-white text-gray-900",
+              "dark:bg-gray-700 dark:text-gray-100"
+            )}
+          />
+          <button
+            type="submit"
+            className="text-sm text-green-600 hover:underline"
+          >
+            Save
+          </button>
+          <button
+            type="button" // Prevents submitting the form
+            onClick={() => setIsEditing(false)}
+            className="text-sm text-gray-500 hover:underline"
+          >
+            Cancel
+          </button>
+        </form>
       ) : (
         <p className="mt-1">{msg.text}</p>
       )}

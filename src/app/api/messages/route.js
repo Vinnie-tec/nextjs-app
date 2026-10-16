@@ -147,3 +147,64 @@ export async function DELETE(request) {
   }
 }
 
+// -------------------------------------------------------------
+// PUT handler — Edit an existing message
+// -------------------------------------------------------------
+export async function PUT(request) {
+  try {
+    // 🔐 Get the current authenticated user session from NextAuth
+    const session = await getServerSession(authOptions);
+
+    // 🚫 If the user is not authenticated, return 401 Unauthorized
+    if (!session?.user) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // 📦 Parse the JSON body to extract message ID and new text
+    const { id, newText } = await request.json();
+
+    // ⚠️ Validate input: message ID and non-empty text are required
+    if (!id || !newText?.trim()) {
+      return Response.json({ error: "Invalid data" }, { status: 400 });
+    }
+
+    // 🔍 Retrieve the existing message from the database
+    const message = db.prepare("SELECT * FROM messages WHERE id = ?").get(id);
+
+    // 🚫 Check ownership: only the original author can edit
+    if (!message || message.user_id !== session.user.id) {
+      return Response.json({ error: "Unauthorized" }, { status: 403 });
+    }
+
+    // ✏️ Update the message text and set edited_at timestamp
+    db.prepare("UPDATE messages SET text = ?, edited_at = CURRENT_TIMESTAMP WHERE id = ?")
+      .run(newText, id);
+
+    // 🔄 Fetch the updated message including the user's name for the frontend
+    const updated = db
+      .prepare(`
+        SELECT m.id, m.text, m.created_at, m.edited_at, m.user_id, u.name AS user_name, m.course_id
+        FROM messages m
+        LEFT JOIN users u ON m.user_id = u.id
+        WHERE m.id = ?
+      `)
+      .get(id);
+
+    // 🔔 Broadcast the edit event via SSE or WebSocket to notify clients
+    broadcastMessage({
+      type: "edit",
+      data: updated,
+    });
+
+    // ✅ Return a success response with the updated message data
+    return Response.json({
+      success: true,
+      message: "Message updated successfully!",
+      data: updated,
+    });
+  } catch (error) {
+    // 💥 Log and handle unexpected errors
+    console.error("Error editing message:", error);
+    return Response.json({ error: "Failed to edit message" }, { status: 500 });
+  }
+}

@@ -94,6 +94,15 @@ export default function MessagesList({ courseId }) {
           );
           break;
 
+        case "edit":
+          // Update an existing message by matching its ID
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === payload.data.id ? { ...m, ...payload.data } : m,
+            ),
+          );
+          break;
+
         default:
           // Log a warning for any unexpected message types
           console.warn("Unknown SSE message type:", payload);
@@ -137,6 +146,43 @@ export default function MessagesList({ courseId }) {
     }
   };
 
+  // Function to handle editing a message
+  const handleEdit = async (id, editText) => {
+    // ⚠️ Prevent empty edits
+    if (!editText.trim()) return;
+
+    try {
+      // ⚡ Optimistic UI update:
+      // Immediately update the message text in the local state
+      // so the user sees the change before the server confirms
+      setMessages((prev) =>
+        prev.map((m) => (m.id === id ? { ...m, text: editText } : m)),
+      );
+
+      // 🌐 Send a PUT request to the server to update the message in the database
+      const res = await fetch("/api/messages", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, newText: editText }), // Pass message ID and new text
+      });
+
+      // 📦 Parse the JSON response
+      const data = await res.json();
+
+      // ❌ If the server responds with an error, throw to trigger catch block
+      if (!res.ok) throw new Error(data.error || "Failed to update message");
+
+      // ✅ Show success toast
+      toast.success("Message updated");
+    } catch (err) {
+      // 💥 Log any errors
+      console.error(err);
+
+      // 🚫 Show error toast to the user
+      toast.error(err.message || "Failed to edit message");
+    }
+  };
+
   if (loading) return <p>Loading messages...</p>;
 
   return (
@@ -158,6 +204,7 @@ export default function MessagesList({ courseId }) {
             msg={msg}
             session={session}
             handleDelete={handleDelete}
+            handleEdit={handleEdit}
           />
         ))}
         <div ref={bottomRef} />
