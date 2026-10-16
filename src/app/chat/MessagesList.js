@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState, useRef } from "react";
 import { getMessages } from "./actions";
 import { useSession } from "next-auth/react";
-import { formatDistanceToNow } from "date-fns";
+import MessageItem from "./MessageItem";
 
 export default function MessagesList({ courseId }) {
   // Get the current authentication session and session status from NextAuth
@@ -87,6 +87,13 @@ export default function MessagesList({ courseId }) {
           setMessages((prev) => [...prev, payload.data]);
           break;
 
+        case "delete":
+          // Remove a message from the list by ID
+          setMessages((prev) =>
+            prev.filter((msg) => msg.id !== payload.data.id),
+          );
+          break;
+
         default:
           // Log a warning for any unexpected message types
           console.warn("Unknown SSE message type:", payload);
@@ -98,10 +105,43 @@ export default function MessagesList({ courseId }) {
     return () => eventSource.close();
   }, [sessionStatus]);
 
+  // 🗑️ Handles deleting a message both in the UI and on the server
+  const handleDelete = async (id) => {
+    try {
+      // ⚡ Optimistic UI update:
+      // Immediately remove the message from the local state
+      // so the user sees it disappear instantly (before the server confirms).
+      setMessages((prev) => prev.filter((m) => m.id !== id));
+
+      // 🌐 Send a DELETE request to the server to remove the message from the database
+      const res = await fetch("/api/messages", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }), // Pass the message ID in the request body
+      });
+
+      // 📦 Parse the JSON response
+      const data = await res.json();
+
+      // ❌ If the server responded with an error status, throw an error to trigger the catch block
+      if (!res.ok) throw new Error(data.error || "Failed to delete message");
+
+      // ✅ Show a success toast when deletion succeeds
+      toast.success("Message deleted");
+    } catch (err) {
+      // 💥 Handle network or server errors gracefully
+      console.error(err);
+
+      // 🚫 Show an error toast to inform the user that deletion failed
+      toast.error(err.message || "Failed to delete");
+    }
+  };
+
   if (loading) return <p>Loading messages...</p>;
 
   return (
     <div>
+      {/* Load previous messages button */}
       {hasMore && (
         <button
           onClick={loadMore}
@@ -113,16 +153,12 @@ export default function MessagesList({ courseId }) {
 
       <ul>
         {messages.map((msg) => (
-          <li key={msg.id}>
-            <p>
-              {msg.user_name || "Anonymous"}: {msg.text}
-            </p>
-            <small>
-              {formatDistanceToNow(new Date(msg.created_at + "Z"), {
-                addSuffix: true,
-              })}
-            </small>
-          </li>
+          <MessageItem
+            key={msg.id}
+            msg={msg}
+            session={session}
+            handleDelete={handleDelete}
+          />
         ))}
         <div ref={bottomRef} />
       </ul>

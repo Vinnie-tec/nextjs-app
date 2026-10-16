@@ -80,7 +80,7 @@ export async function POST(request) {
       type: "new",
       data: newMessage,
     });
-    
+
     // Return success response
     return Response.json({
       success: true,
@@ -94,3 +94,56 @@ export async function POST(request) {
     );
   }
 }
+
+
+// -------------------------------------------------------------
+// DELETE handler — Remove a message by its author
+// -------------------------------------------------------------
+export async function DELETE(request) {
+  try {
+    // 🔐 Get the current authenticated user session from NextAuth
+    const session = await getServerSession(authOptions);
+
+    // 🚫 If there's no authenticated user, return a 401 Unauthorized response
+    if (!session?.user) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // 📦 Parse the JSON body from the DELETE request to extract the message ID
+    const { id } = await request.json();
+
+    // ⚠️ If no message ID is provided, return a 400 Bad Request error
+    if (!id) {
+      return Response.json({ error: "Message ID required" }, { status: 400 });
+    }
+
+    // 🔍 Look up the message in the database by its ID
+    const message = db.prepare("SELECT * FROM messages WHERE id = ?").get(id);
+
+    // 🚫 If the message doesn't exist, or the user doesn’t own it, deny access
+    if (!message || message.user_id !== session.user.id) {
+      return Response.json({ error: "Unauthorized" }, { status: 403 });
+    }
+
+    // 🗑️ Delete the message from the database
+    db.prepare("DELETE FROM messages WHERE id = ?").run(id);
+
+    // 🔔 Notify all connected clients via Server-Sent Events (SSE)
+    // that a message was deleted, so they can update their UIs in real-time
+    broadcastMessage({
+      type: "delete",
+      data: { id },
+    });
+
+    // ✅ Return a success response
+    return Response.json({
+      success: true,
+      message: "Message deleted successfully!",
+    });
+  } catch (error) {
+    // 💥 Handle any unexpected errors (e.g., DB issues)
+    console.error("Error deleting message:", error);
+    return Response.json({ error: "Failed to delete message" }, { status: 500 });
+  }
+}
+
