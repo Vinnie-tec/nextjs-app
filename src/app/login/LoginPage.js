@@ -7,6 +7,9 @@ import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import clsx from "clsx";
+import { FcGoogle } from "react-icons/fc";
+import { FaGithub } from "react-icons/fa";
 import FormError from "@/components/FormError";
 import SubmitButton from "@/components/ui/SubmitButton";
 import { inputClass } from "@/lib/styles";
@@ -86,6 +89,49 @@ export default function LoginPage() {
           </SubmitButton>
           
         </form>
+
+        {/* OAuth Login Buttons */}
+      <div className="mt-6 flex flex-col gap-3">
+        {/* Google Login */}
+        <button
+          type="button"
+          onClick={() => signIn("google")}
+          className={clsx(
+            // --- Layout & structure ---
+            "w-full py-2 border rounded-md flex justify-center items-center gap-2",
+            "transition shadow-sm font-medium cursor-pointer",
+
+            // --- Light mode colors ---
+            "bg-white text-gray-700 hover:bg-gray-100",
+
+            // --- Dark mode colors ---
+            "dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700"
+          )}
+        >
+          <FcGoogle size={22} />
+          <span className="font-medium">Login with Google</span>
+        </button>
+
+        {/* GitHub Login */}
+        <button
+          type="button"
+          onClick={() => signIn("github")}
+          className={clsx(
+            // --- Layout & structure ---
+            "w-full py-2 rounded-md border flex justify-center items-center gap-2",
+
+            // --- Colors & dark mode ---
+            "bg-black text-white hover:bg-gray-900",
+            "dark:bg-gray-950 dark:hover:bg-black",
+
+            // --- Interaction & transitions ---
+            "transition shadow-sm font-medium cursor-pointer"
+          )}
+        >
+          <FaGithub size={22} />
+          <span>Login with GitHub</span>
+        </button>
+      </div>
 
         {/* Forgot password link */}
         <p className="text-sm text-center mt-4">
