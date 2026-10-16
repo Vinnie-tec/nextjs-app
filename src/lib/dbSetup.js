@@ -24,6 +24,17 @@ const createTablesSQL = loadSQL("schema/createTables.sql");
 // db.exec(dropTablesSQL);
 db.exec(createTablesSQL);
 
+// Migrate databases created before messages were linked to courses.
+const messageColumns = db.prepare("PRAGMA table_info(messages)").all();
+if (!messageColumns.some(({ name }) => name === "course_id")) {
+  db.exec(
+    "ALTER TABLE messages ADD COLUMN course_id INTEGER REFERENCES courses(id)"
+  );
+}
+if (!messageColumns.some(({ name }) => name === "edited_at")) {
+  db.exec("ALTER TABLE messages ADD COLUMN edited_at DATETIME");
+}
+
 // -------------------------------------------------------------
 // 🌱 Seed demo users (with hashed passwords)
 // -------------------------------------------------------------

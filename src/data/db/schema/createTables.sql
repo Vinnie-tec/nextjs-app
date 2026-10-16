@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS messages (
   text TEXT NOT NULL,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   edited_at DATETIME,                    -- ✅ timestamp for edits
-  FOREIGN KEY (user_id) REFERENCES users(id)
+  FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (course_id) REFERENCES courses(id)
 );
 
