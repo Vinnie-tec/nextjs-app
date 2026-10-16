@@ -1,9 +1,9 @@
 // Mark this as a Client Component in Next.js  to use hooks: useState, useEffect
 'use client';
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, Suspense, useRef } from "react";
 import { useSession, signIn } from "next-auth/react";
-import toast from "react-hot-toast";
+// import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -35,6 +35,9 @@ export default function MessagesPage() {
 
   // List of courses
   const [courses, setCourses] = useState([]);
+
+  // Ref to the message input
+  const inputRef = useRef(null);
 
   // -------------------------------------------------------------
   // ✅ Fetch courses on mount
@@ -84,7 +87,29 @@ export default function MessagesPage() {
   });
 
   const onSubmit = async (values) => {
+    try {
+      const res = await fetch("/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: values.text, course_id: selectedCourse }),
+      });
 
+      const data = await res.json();
+      if (data.success) {
+        reset();
+        setTimeout(() => {
+          inputRef.current?.focus(); // focus after DOM updates
+        }, 500);
+      } else {
+        console.error(data.error || "Failed to send message");
+      }
+    } catch (err) {
+      console.error("Message submission failed:", err);
+    }
+  };
+
+  const submitForm = (event) => {
+    void handleSubmit(onSubmit)(event);
   };
 
   // -------------------------------------------------------------
@@ -151,14 +176,14 @@ export default function MessagesPage() {
         {/* 💬 Right: Messages + Form */}
         <div className="flex-1">
           {/* Message List */}
-          <ErrorBoundary>
+         <ErrorBoundary>
             <Suspense fallback={<p>Loading messages...</p>}>
               <MessagesList key={selectedCourse ?? "empty-course"} courseId={selectedCourse} />
             </Suspense>
           </ErrorBoundary>
 
           {/* Message Input Form */}
-          <form onSubmit={handleSubmit} className="flex flex-col gap-2 mt-4">
+          <form onSubmit={submitForm} className="flex flex-col gap-2 mt-4">
             {/* Input field for typing new message */}
             <input
               type="text"
@@ -167,6 +192,10 @@ export default function MessagesPage() {
               disabled={isSubmitting} // Disable input while sending
               className={inputClass}
               {...register("text")}
+              ref={(e) => {
+                register("text").ref(e); // keep RHF ref
+                inputRef.current = e;     // custom ref
+              }}
             />
             <FormError>{errors.text?.message}</FormError>
 
