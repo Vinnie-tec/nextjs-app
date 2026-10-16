@@ -68,7 +68,7 @@ export default function MessagesPage() {
     } else {
       console.log("Session not ready yet:", status);
     }
-  }, [status]);
+  }, [status, selectedCourse]);
 
   // -------------------------------------------------------------
   // ✅ React Hook Form setup
@@ -153,7 +153,7 @@ export default function MessagesPage() {
           {/* Message List */}
           <ErrorBoundary>
             <Suspense fallback={<p>Loading messages...</p>}>
-              <MessagesList courseId={selectedCourse} />
+              <MessagesList key={selectedCourse ?? "empty-course"} courseId={selectedCourse} />
             </Suspense>
           </ErrorBoundary>
 

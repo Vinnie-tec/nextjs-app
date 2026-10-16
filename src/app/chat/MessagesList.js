@@ -1,42 +1,85 @@
 'use client';
 
-import { useEffect, useState } from "react";
-import { getMessages } from "./actions"; // server actions
+import { useCallback, useEffect, useState, useRef } from "react";
+import { getMessages } from "./actions";
 import { formatDistanceToNow } from "date-fns";
 
 export default function MessagesList({ courseId }) {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const bottomRef = useRef(null);
+  const PAGE_SIZE = 2;
 
-  // useEffect hook runs when the component mounts or when `courseId` changes
+  const fetchMessages = useCallback(
+    async (newOffset = 0) => {
+      setLoading(true);
+
+      try {
+        const data = await getMessages(courseId, PAGE_SIZE, newOffset);
+
+        if (newOffset === 0) {
+          const initialMessages = [...data].reverse();
+          setMessages(initialMessages);
+          bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+        } else {
+          const olderMessages = [...data].reverse();
+          setMessages((prev) => [...olderMessages, ...prev]);
+        }
+
+        setHasMore(data.length === PAGE_SIZE);
+      } catch (err) {
+        console.error("Failed to load messages:", err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [courseId]
+  );
+
   useEffect(() => {
-    // Define an async function to fetch messages
-    const fetchMessages = async () => {
-      setLoading(true); // Set loading state to true before fetching data
+    if (!courseId) return;
 
-      // Fetch messages from the API using the current courseId
-      const data = await getMessages(courseId);
+    const timer = setTimeout(() => {
+      void fetchMessages(0);
+    }, 0);
 
-      // Reverse messages so the oldest messages appear first
-      setMessages(data.reverse());
+    return () => clearTimeout(timer);
+  }, [courseId, fetchMessages]);
 
-      setLoading(false); // Set loading state to false after data is fetched
-    };
+  const loadMore = () => {
+    const nextOffset = offset + PAGE_SIZE;
+    setOffset(nextOffset);
+    fetchMessages(nextOffset);
+  };
 
-    fetchMessages(); // Call the async fetch function
-  }, [courseId]); // Dependency array: effect re-runs whenever courseId changes
-
-  // If messages are still loading, show a loading message
   if (loading) return <p>Loading messages...</p>;
 
   return (
-    <ul>
-      {messages.map((msg) => (
-        <li key={msg.id}>
-          <p>{msg.user_name || "Anonymous"}: {msg.text}</p>
-          <small>{formatDistanceToNow(new Date(msg.created_at + "Z"), { addSuffix: true })}</small>
-        </li>
-      ))}
-    </ul>
+    <div>
+      {hasMore && (
+        <button
+          onClick={loadMore}
+          className="mb-2 px-3 py-1 rounded bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600"
+        >
+          Load previous {PAGE_SIZE} messages
+        </button>
+      )}
+
+      <ul>
+        {messages.map((msg) => (
+          <li key={msg.id}>
+            <p>
+              {msg.user_name || "Anonymous"}: {msg.text}
+            </p>
+            <small>
+              {formatDistanceToNow(new Date(msg.created_at + "Z"), { addSuffix: true })}
+            </small>
+          </li>
+        ))}
+        <div ref={bottomRef} />
+      </ul>
+    </div>
   );
 }
