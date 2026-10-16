@@ -1,10 +1,14 @@
-'use client';
+"use client";
 
 import { useCallback, useEffect, useState, useRef } from "react";
 import { getMessages } from "./actions";
+import { useSession } from "next-auth/react";
 import { formatDistanceToNow } from "date-fns";
 
 export default function MessagesList({ courseId }) {
+  // Get the current authentication session and session status from NextAuth
+  const { data: session, status: sessionStatus } = useSession();
+
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [offset, setOffset] = useState(0);
@@ -35,7 +39,7 @@ export default function MessagesList({ courseId }) {
         setLoading(false);
       }
     },
-    [courseId]
+    [courseId],
   );
 
   useEffect(() => {
@@ -53,6 +57,46 @@ export default function MessagesList({ courseId }) {
     setOffset(nextOffset);
     fetchMessages(nextOffset);
   };
+
+  // SSE live updates
+  useEffect(() => {
+    // If the user is not authenticated, don't open the SSE connection
+    if (sessionStatus !== "authenticated") {
+      return;
+    }
+
+    // Create a new EventSource to listen for real-time updates from the server
+    const eventSource = new EventSource("/api/messages/stream");
+
+    // Handle incoming messages from the SSE connection
+    eventSource.onmessage = (event) => {
+      // Parse the JSON payload sent from the server
+      const payload = JSON.parse(event.data);
+      console.log("payload:");
+      console.log(payload);
+
+      // Handle different message types sent from the server
+      switch (payload.type) {
+        case "connected":
+          // Display a success toast when successfully connected to the stream
+          toast.success("Connected successfully!");
+          break;
+
+        case "new":
+          // Append a new message to the list of messages
+          setMessages((prev) => [...prev, payload.data]);
+          break;
+
+        default:
+          // Log a warning for any unexpected message types
+          console.warn("Unknown SSE message type:", payload);
+      }
+    };
+
+    // Clean up the EventSource connection when the component unmounts
+    // or when dependencies change
+    return () => eventSource.close();
+  }, [sessionStatus]);
 
   if (loading) return <p>Loading messages...</p>;
 
@@ -74,7 +118,9 @@ export default function MessagesList({ courseId }) {
               {msg.user_name || "Anonymous"}: {msg.text}
             </p>
             <small>
-              {formatDistanceToNow(new Date(msg.created_at + "Z"), { addSuffix: true })}
+              {formatDistanceToNow(new Date(msg.created_at + "Z"), {
+                addSuffix: true,
+              })}
             </small>
           </li>
         ))}

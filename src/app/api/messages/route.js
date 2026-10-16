@@ -76,7 +76,11 @@ export async function POST(request) {
       .get(result.lastInsertRowid);
 
     // Broadcast new message to all connected clients (SSE) - Will be done in the next session
-
+    broadcastMessage({
+      type: "new",
+      data: newMessage,
+    });
+    
     // Return success response
     return Response.json({
       success: true,

@@ -58,10 +58,18 @@ function encode(str) {
 // -------------------------------------------------------------
 // Broadcast a message to all connected clients
 // -------------------------------------------------------------
-export function broadcastMessage(msg) {
+export function broadcastMessage(payload) {
+  // The payload should always include a `type`
+  // e.g. { type: "new", data: {...} } or { type: "edit", data: {...} }
+
+  if (!payload?.type) {
+    console.error("⚠️ broadcastMessage called without type:", payload);
+    return;
+  }
+
   // Each message must begin with "data:" and end with two newlines (\n\n)
   // so the browser knows where one message ends and another begins.
-  const data = `data: ${JSON.stringify(msg)}\n\n`;
+  const data = `data: ${JSON.stringify(payload)}\n\n`;
   const encoded = encode(data);
 
   // Iterate over all connected SSE clients
